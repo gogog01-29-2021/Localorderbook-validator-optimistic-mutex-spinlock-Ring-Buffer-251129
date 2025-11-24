@@ -1,7 +1,7 @@
 # C++ High-Performance NRT Orderbook Aggregator
 
 ## 1. 프로젝트 개요 (Overview)
-본 프로젝트는 **AWS Kinesis Data Streams (EFO)**를 통해 수신되는 3개 주요 암호화폐 거래소(Binance, Bybit, OKX)의 오더북 스트림을 **단일 EC2 노드**에서 수집, 병합(Merge), 정렬하여 **글로벌 통합 오더북(Global Snapshot)**을 발행하는 고성능 시스템입니다.
+본 프로젝트는 **AWS Kinesis Data Streams** (EFO)를 통해 수신되는 3개 주요 암호화폐 거래소(Binance, Bybit, OKX)의 오더북 스트림을 **단일 EC2 노드**에서 수집, 병합(Merge), 정렬하여 **글로벌 통합 오더북**(Global Snapshot)을 발행하는 고성능 시스템입니다.
 
 ### 핵심 철학: NRT (Near Real-Time)
 > **"오래된 완전함보다, 불완전하더라도 최신의 데이터가 가치 있다."**
@@ -62,10 +62,10 @@ graph LR
 
 ### Thread Model
 1.  **Reader Threads (3개)**
-    * **역할:** AWS Kinesis EFO 비동기 수신, `ShardContext` 생명주기 관리.
+    * **역할:** AWS Kinesis EFO 비동기 수신, `ShardContext` 생명주기 관리, Protobuf 파싱
     * **전략:** OS 스케줄러 위임 (No Pinning). 대기 시간이 99%이므로 유휴 자원 활용.
 2.  **Processor Threads (3개)**
-    * **역할:** Protobuf 파싱, 10ms 윈도우잉, 병합/정렬, 스냅샷 생성.
+    * **역할:** 처리 지연 시 점프, 10ms 윈도우잉, 병합/정렬, 스냅샷 생성.
     * **전략:** **CPU Pinning (Core 3, 4, 5)**. Context Switching 비용 제거 및 L1/L2 Cache Hit 극대화.
 3.  **Publisher Threads (3개)**
     * **역할:** 최종 병합된 스냅샷 외부 전송.
